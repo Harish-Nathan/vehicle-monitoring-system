@@ -1,97 +1,153 @@
-# Multithreaded Vehicle Monitoring System
-
-**Real-time Linux system programming project** that simulates vehicle sensors (speed, fuel, temperature) and demonstrates production-style logging, thread-safe shared state, hysteresis/debounce logic, and a live terminal UI.
-
----
-
-## Overview
-This project is a compact, runnable example of system-level C programming on Linux. Each sensor runs in its own POSIX thread; shared state is protected with mutexes and condition variables. The system logs JSON telemetry to `logs/vehicle.log`, raises event alerts based on hysteresis logic, and provides a live ncurses-based dashboard (`ui`) for real-time visualization. The program supports graceful shutdown via `SIGINT`.
+# 🚗 Multithreaded Vehicle Monitoring System  
+*A Linux system-programming project demonstrating real-time sensor simulation, POSIX threads, synchronization, logging, and a live ncurses dashboard.*
 
 ---
 
-## Features
-- Multithreaded sensor simulation (speed, fuel, temperature)  
-- POSIX threads, mutex + condvar synchronization  
-- Hysteresis-based alert thresholds and debounce logic  
-- JSON formatted telemetry logging (`logs/vehicle.log`)  
-- ncurses-based live dashboard for visualization (`ui.c`)  
-- Clean SIGINT-driven shutdown that flushes logs and joins threads
+## 🌟 Overview
+
+This project models a simplified vehicle ECU-style monitoring system with three independent sensors:
+
+- **Speed**
+- **Fuel Level**
+- **Engine Temperature**
+
+Each sensor runs in its own **POSIX thread** and updates a shared state protected with **mutex + condition variables**.  
+The system generates **JSON-formatted logs**, applies **hysteresis and debounce** for stable alerting, and shows a **real-time dashboard** using ncurses.  
+A **clean shutdown** is handled using `SIGINT`.
+
+This project demonstrates **real embedded Linux system programming**, not classroom-level C.
 
 ---
 
-## Repo layout
+## 🔧 Key Features
 
-Makefile
-README.md
-include/
-└─ data.h # shared data structures and constants
-logs/
-└─ vehicle.log # runtime telemetry logs (gitignored)
-src/
-├─ main.c # program entry, init, signal handling
-├─ speed.c # speed sensor thread & logic
-├─ fuel.c # fuel sensor thread & logic
-├─ temp.c # temperature sensor thread & logic
-├─ logger.c # JSON logging utilities
-├─ utils.c # helper utilities (timestamp, json)
-└─ ui.c # ncurses dashboard & rendering
-vehicle_monitor # binary (not checked into git)
-
+- 🧵 **Multithreaded sensor simulation** (speed, fuel, temperature)  
+- 🔐 **Thread-safe shared data** using mutex and condition variables  
+- 📉 **Hysteresis-based alert logic** (prevents flicker/flapping)  
+- ⏳ **Debounce filter** on sensor transitions  
+- 🪵 **JSON telemetry logging** (`logs/vehicle.log`)  
+- 📺 **Ncurses dashboard** for real-time monitoring  
+- 🧹 **Graceful SIGINT shutdown** (joins threads + flushes logs)  
+- 🧩 **Modular, maintainable architecture**  
 
 ---
 
-## Build & Run
+## 📂 Project Structure
 
-### Prerequisites
-- Linux (Ubuntu recommended)  
-- `gcc`, `make`  
-- `libncurses` development headers (`sudo apt install libncurses5-dev libncursesw5-dev`)  
-- `jq` (optional, for pretty-printing logs during dev)
+```
+vehicle-monitoring-system/
+│
+├── src/
+│   ├── main.c          # Program entry, thread launch, SIGINT handling
+│   ├── speed.c         # Speed sensor thread
+│   ├── fuel.c          # Fuel sensor thread
+│   ├── temp.c          # Temperature sensor thread
+│   ├── logger.c        # JSON logging utilities
+│   ├── utils.c         # Timestamp + helper functions
+│   └── ui.c            # ncurses dashboard
+│
+├── include/
+│   └── data.h          # Shared structs, thresholds, mutex/condvars
+│
+├── logs/               # Runtime logs (ignored by git)
+│
+├── Makefile            # Build script
+├── .gitignore          # Ignore binary, object files, logs
+└── README.md           # Project documentation
+```
 
-### Build
+---
+
+## 🛠️ Build & Run
+
+### **1️⃣ Build**
 ```bash
 make
+```
 
-Run
+### **2️⃣ Run**
+```bash
 ./vehicle_monitor
+```
 
+### **3️⃣ Stop (Gracefully)**
+Press:
 
-Press Ctrl+C to exit cleanly.
+```
+Ctrl + C
+```
 
-Sample log entry
+The program intercepts SIGINT, signals all threads to terminate, flushes logs, and exits cleanly.
 
+---
+
+## 📝 Sample JSON Log Entry
+
+```json
+{
+  "timestamp": "2025-11-12 14:22:01",
+  "sensor": "speed",
+  "event": "SPEED_HIGH",
+  "value": 102
+}
+```
+
+Logs are stored in:
+
+```
 logs/vehicle.log
+```
 
-{"timestamp":"2025-11-12 14:22:01","sensor":"speed","event":"SPEED_HIGH","value":102}
+(Logs are excluded from Git to keep the repository clean.)
 
-File responsibilities
+---
 
-src/main.c — initializes system, spawns threads, handles signals, joins threads on exit.
+## 📌 Module Responsibilities
 
-src/speed.c, src/fuel.c, src/temp.c — simulate sensor readings, apply hysteresis/debounce and update shared state.
+### **🧵 main.c**
+- Initialize system state  
+- Setup mutexes + condition variables  
+- Launch sensor, logger, and UI threads  
+- Manage SIGINT + graceful shutdown  
 
-src/logger.c — thread-safe JSON logging functions and log rotation helper (if any).
+### **🚀 speed.c / fuel.c / temp.c**
+- Generate simulated sensor readings  
+- Apply hysteresis thresholds  
+- Apply debounce logic  
+- Update shared state  
 
-src/ui.c — ncurses-based dashboard showing current values and alerts.
+### **🪵 logger.c**
+- Thread-safe write operations  
+- JSON formatting  
+- Timestamping  
 
-src/utils.c — timestamp formatting, small helpers (safe string ops, config loader).
+### **🔧 utils.c**
+- Timestamp helpers  
+- Small utility wrappers  
 
-include/data.h — shared data structure definitions (sensor struct, mutex/cond, thresholds).
+### **📺 ui.c**
+- Ncurses dashboard  
+- Display sensor values + alerts  
+- Refresh loop with clean exit  
 
-Development notes & next steps
+---
 
-Add configuration file (cfg/thresholds.json) for runtime tuning.
+## 📈 Future Enhancements
 
-Replace sensor simulation with live input (socket or serial) for hardware integration.
+- Configurable thresholds from a JSON file  
+- Socket-based remote monitoring  
+- Log rotation + size limits  
+- Hardware sensor input (UART/SPI/CAN)  
+- Thread CPU affinity for scheduling optimization  
 
-Add unit tests for hysteresis and debounce logic.
+---
 
-Add log rotation and size limits for long-running tests.
+## 👨‍💻 Author
 
-Author
+**Harish S**  
+Embedded Linux & System Programming Engineer  
+📧 **harishnathan024@gmail.com**  
+🔗 LinkedIn: (https://www.linkedin.com/in/harish-s-embedded/)
 
-Harish S — Embedded Linux & System Programming
-LinkedIn: https://www.linkedin.com/in/harish-s-embedded/
-
-Email: harishnathan024@gmail.com
+---
 
