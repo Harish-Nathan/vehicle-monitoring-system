@@ -1,0 +1,18 @@
+# build artifacts
+/obj/
+/vehicle_monitor
+*.o
+
+# logs / runtime
+/logs/
+/*.log
+
+# editor files
+.vscode/
+.idea/
+*~
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
